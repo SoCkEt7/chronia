@@ -1,0 +1,99 @@
+{# templates/job/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Cron Jobs - Chronia{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Cron Jobs</h1>
+        <a href="{{ path('app_job_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Job
+        </a>
+    </div>
+
+    {% if entries is empty %}
+        <div class="alert alert-info">
+            <p>No cron jobs found. Click the "Add New Job" button to create your first job.</p>
+        </div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Schedule</th>
+                        <th>Command</th>
+                        <th>Status</th>
+                        <th>Last Run</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.id }}</td>
+                            <td><code>{{ entry.schedule }}</code></td>
+                            <td><code>{{ entry.command }}</code></td>
+                            <td>
+                                {% if entry.active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if entry.last_run.time %}
+                                    {{ entry.last_run.time }}
+                                    {% if entry.last_run.status %}
+                                        <span class="badge bg-success">Success</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Never run</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ path('app_job_edit', {'id': entry.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a href="{{ path('app_job_test', {'id': entry.id}) }}" class="btn btn-sm btn-outline-secondary">Test</a>
+                                    {% if entry.active %}
+                                        <a href="{{ path('app_job_toggle', {'id': entry.id, 'active': 0}) }}" class="btn btn-sm btn-outline-warning">Disable</a>
+                                    {% else %}
+                                        <a href="{{ path('app_job_toggle', {'id': entry.id, 'active': 1}) }}" class="btn btn-sm btn-outline-success">Enable</a>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ entry.id }}">Delete</button>
+                                </div>
+                                
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteModal{{ entry.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ entry.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ entry.id }}">Confirm Deletion</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete this cron job?</p>
+                                                <p><strong>Schedule:</strong> <code>{{ entry.schedule }}</code></p>
+                                                <p><strong>Command:</strong> <code>{{ entry.command }}</code></p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ path('app_job_delete', {'id': entry.id}) }}" method="post">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ entry.id) }}">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

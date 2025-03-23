@@ -1,0 +1,18 @@
+{
+    "dev_mode": true,
+    "version": "1.0.0",
+    "app_name": "Chrona",
+    "cron_service": "cron.service",
+    "data_path": "./data",
+    "log_path": "./data/logs",
+    "platform": "dev",
+    "security": {
+        "sudo_user": "antonin",
+        "temp_dir": "/tmp",
+        "job_runner": "./dev/job_runner.sh"
+    },
+    "ui": {
+        "theme": "light",
+        "show_help": true
+    }
+}

@@ -1,0 +1,41 @@
+{
+    "version": "1.0.0",
+    "app_name": "Chrona",
+    "cron_service": "cron.service",
+    "data_path": "/var/lib/chrona",
+    "log_path": "/var/lib/chrona/logs",
+    "platform": "auto-detect",
+    "notification": {
+        "enabled": true,
+        "email": {
+            "enabled": false,
+            "smtp_host": "",
+            "smtp_port": 587,
+            "smtp_user": "",
+            "smtp_password": "",
+            "from_address": "chrona@localhost",
+            "recipients": []
+        },
+        "webhook": {
+            "enabled": false,
+            "url": "",
+            "method": "POST",
+            "headers": {}
+        }
+    },
+    "security": {
+        "sudo_user": "chrona",
+        "temp_dir": "/tmp",
+        "job_runner": "/usr/bin/chrona_job_runner.sh",
+        "allowed_commands": [
+            "/bin/systemctl",
+            "/usr/bin/crontab"
+        ]
+    },
+    "ui": {
+        "theme": "light",
+        "show_help": true,
+        "items_per_page": 15,
+        "default_view": "dashboard"
+    }
+}

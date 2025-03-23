@@ -1,0 +1,152 @@
+{# templates/job/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Cron Jobs - Chronia{% endblock %}
+
+{% block body %}
+    {% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle the user selection form submission
+            const userSelectionForm = document.getElementById('userSelectionForm');
+            userSelectionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const user = document.getElementById('userInput').value.trim();
+                if (user) {
+                    window.location.href = '{{ path('app_job_index') }}?user=' + encodeURIComponent(user);
+                } else {
+                    window.location.href = '{{ path('app_job_index') }}';
+                }
+            });
+            
+            // Pre-populate the user input field with the current query parameter
+            const currentUser = '{{ app.request.query.get('user') }}';
+            if (currentUser) {
+                document.getElementById('userInput').value = currentUser;
+            }
+        });
+    </script>
+    {% endblock %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Cron Jobs</h1>
+        <a href="{{ path('app_job_new') }}{% if app.request.query.get('user') %}?user={{ app.request.query.get('user') }}{% endif %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Job
+        </a>
+    </div>
+    
+    <!-- User selection form -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Select User</h5>
+        </div>
+        <div class="card-body">
+            <form id="userSelectionForm" class="d-flex gap-2">
+                <div class="flex-grow-1">
+                    <div class="input-group">
+                        <span class="input-group-text">User:</span>
+                        <input type="text" id="userInput" name="user" class="form-control" placeholder="Enter username (e.g. {{ default_crontab_user|default('antonin') }})">
+                    </div>
+                    <small class="form-text text-muted">Enter a username to view and manage their crontab</small>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Load Jobs</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if app.request.query.get('user') %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Currently managing crontab for user: <strong>{{ app.request.query.get('user') }}</strong>
+    </div>
+    {% endif %}
+
+    {% if entries is empty %}
+        <div class="alert alert-info">
+            <p>No cron jobs found. Click the "Add New Job" button to create your first job.</p>
+        </div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Schedule</th>
+                        <th>Command</th>
+                        <th>Status</th>
+                        <th>Last Run</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.id }}</td>
+                            <td><code>{{ entry.schedule }}</code></td>
+                            <td><code>{{ entry.command }}</code></td>
+                            <td>
+                                {% if entry.active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if entry.last_run.time %}
+                                    {{ entry.last_run.time }}
+                                    {% if entry.last_run.status %}
+                                        <span class="badge bg-success">Success</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Never run</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ path('app_job_edit', {'id': entry.id}) }}{% if app.request.query.get('user') %}?user={{ app.request.query.get('user') }}{% endif %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a href="{{ path('app_job_test', {'id': entry.id}) }}{% if app.request.query.get('user') %}?user={{ app.request.query.get('user') }}{% endif %}" class="btn btn-sm btn-outline-secondary">Test</a>
+                                    {% if entry.active %}
+                                        <a href="{{ path('app_job_toggle', {'id': entry.id, 'active': 0}) }}{% if app.request.query.get('user') %}?user={{ app.request.query.get('user') }}{% endif %}" class="btn btn-sm btn-outline-warning">Disable</a>
+                                    {% else %}
+                                        <a href="{{ path('app_job_toggle', {'id': entry.id, 'active': 1}) }}{% if app.request.query.get('user') %}?user={{ app.request.query.get('user') }}{% endif %}" class="btn btn-sm btn-outline-success">Enable</a>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ entry.id }}">Delete</button>
+                                </div>
+                                
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade" id="deleteModal{{ entry.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ entry.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ entry.id }}">Confirm Deletion</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete this cron job?</p>
+                                                <p><strong>Schedule:</strong> <code>{{ entry.schedule }}</code></p>
+                                                <p><strong>Command:</strong> <code>{{ entry.command }}</code></p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ path('app_job_delete', {'id': entry.id}) }}" method="post">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ entry.id) }}">
+                                                    {% if app.request.query.get('user') %}
+                                                    <input type="hidden" name="user" value="{{ app.request.query.get('user') }}">
+                                                    {% endif %}
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

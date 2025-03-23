@@ -1,0 +1,7 @@
+JOB_START: 2025-03-23 17:24:18
+COMMAND: /usr/bin/backup.sh
+----------
+Backup completed successfully.
+----------
+JOB_END: 2025-03-23 17:24:18
+EXIT_CODE: 0

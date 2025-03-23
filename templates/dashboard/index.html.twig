@@ -1,0 +1,155 @@
+{# templates/dashboard/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - Chronia{% endblock %}
+
+{% block body %}
+    <!-- User selection form -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Select User</h5>
+        </div>
+        <div class="card-body">
+            <form id="userSelectionForm" class="d-flex gap-2">
+                <div class="flex-grow-1">
+                    <div class="input-group">
+                        <span class="input-group-text">User:</span>
+                        <input type="text" id="userInput" name="user" class="form-control" placeholder="Enter username (e.g. {{ default_crontab_user|default('antonin') }})">
+                    </div>
+                    <small class="form-text text-muted">Enter a username to view and manage their crontab</small>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Load Jobs</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if app.request.query.get('user') %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Currently viewing crontab for user: <strong>{{ app.request.query.get('user') }}</strong>
+    </div>
+    {% endif %}
+    <h1>Dashboard</h1>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Active Jobs</div>
+                <div class="card-body">
+                    <h2 class="card-title">{{ active_count }}</h2>
+                    <p class="card-text">Currently active cron jobs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-secondary mb-3">
+                <div class="card-header">Total Jobs</div>
+                <div class="card-body">
+                    <h2 class="card-title">{{ total_count }}</h2>
+                    <p class="card-text">Total configured cron jobs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card {% if system_status.cron_running %}text-white bg-success{% else %}text-white bg-danger{% endif %} mb-3">
+                <div class="card-header">Cron Service</div>
+                <div class="card-body">
+                    <h2 class="card-title">{{ system_status.cron_running ? 'Running' : 'Stopped' }}</h2>
+                    <p class="card-text">{{ system_status.cron_service }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Upcoming Jobs</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_jobs is empty %}
+                        <p class="text-muted">No upcoming jobs</p>
+                    {% else %}
+                        <div class="list-group">
+                            {% for job in upcoming_jobs %}
+                                <a href="{{ path('app_job_edit', {'id': job.id}) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ job.command }}</h6>
+                                        <small>{{ job.next_run|date('Y-m-d H:i:s') }}</small>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>System Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Environment
+                            <span class="badge {% if system_status.environment == 'dev' %}bg-warning{% else %}bg-info{% endif %}">
+                                {{ system_status.environment }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Platform
+                            <span class="badge bg-info">{{ system_status.platform.platform }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Cron Service
+                            <span class="badge {% if system_status.cron_running %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ system_status.cron_running ? 'Running' : 'Stopped' }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Utilisateur Crontab
+                            <span class="badge bg-info">{{ system_status.user }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col">
+            <div class="d-grid gap-2">
+                <a href="{{ path('app_job_index') }}{% if app.request.query.get('user') %}?user={{ app.request.query.get('user') }}{% endif %}" class="btn btn-primary">Manage Cron Jobs</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle the user selection form submission
+        const userSelectionForm = document.getElementById('userSelectionForm');
+        userSelectionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = document.getElementById('userInput').value.trim();
+            if (user) {
+                window.location.href = '{{ path('app_dashboard') }}?user=' + encodeURIComponent(user);
+            } else {
+                window.location.href = '{{ path('app_dashboard') }}';
+            }
+        });
+        
+        // Pre-populate the user input field with the current query parameter
+        const currentUser = '{{ app.request.query.get('user') }}';
+        if (currentUser) {
+            document.getElementById('userInput').value = currentUser;
+        }
+    });
+</script>
+{% endblock %}

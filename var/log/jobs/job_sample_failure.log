@@ -1,0 +1,7 @@
+JOB_START: 2025-03-23 17:24:18
+COMMAND: /usr/bin/failed-script.sh
+----------
+Error: File not found
+----------
+JOB_END: 2025-03-23 17:24:18
+EXIT_CODE: 1

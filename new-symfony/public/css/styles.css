@@ -1,0 +1,60 @@
+/* Chronia styles */
+body {
+    background-color: #f8f9fa;
+}
+
+.footer {
+    margin-top: 3rem;
+    color: #6c757d;
+}
+
+.navbar-brand img {
+    margin-right: 0.5rem;
+}
+
+pre {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.03);
+    font-weight: 500;
+}
+
+/* Custom styling for cron job entries */
+.table-responsive {
+    background-color: #fff;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Help text styling */
+.form-text {
+    font-size: 0.875rem;
+}
+
+/* Badge styling */
+.badge {
+    font-weight: 500;
+}
+
+/* Modals */
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}

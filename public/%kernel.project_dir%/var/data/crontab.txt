@@ -1,0 +1,4 @@
+# Sample crontab for development
+0 * * * * /usr/bin/php -f /path/to/script.php
+0 0 * * * /usr/bin/backup.sh
+*/5 * * * * /usr/bin/monitor.sh

@@ -1,0 +1,64 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    data_path: '%env(default:app.data_path_default:DATA_PATH)%'
+    app.data_path_default: '%kernel.project_dir%/var/data'
+    log_path: '%env(default:app.log_path_default:LOG_PATH)%'
+    app.log_path_default: '%kernel.project_dir%/var/log/jobs'
+    temp_dir: '%kernel.project_dir%/var/tmp'
+    cron_service_name: 'cron'
+    default_crontab_user: '%env(default:app.default_crontab_user:DEFAULT_CRONTAB_USER)%'
+    app.default_crontab_user: '%env(USER)%'
+    allowed_commands:
+        - '/usr/bin/php'
+        - '/bin/bash'
+        - '/usr/bin/python'
+        - '/usr/bin/python3'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    App\Service\CrontabManager\CrontabManagerFactory:
+        arguments:
+            $dataPath: '%data_path%'
+            $logPath: '%log_path%'
+            $tempDir: '%temp_dir%'
+            $allowedCommands: '%allowed_commands%'
+            $environment: '%kernel.environment%'
+            $defaultCrontabUser: '%default_crontab_user%'
+
+    App\Service\CrontabManager\CrontabManagerInterface:
+        factory: ['@App\Service\CrontabManager\CrontabManagerFactory', 'createManager']
+    
+    App\Service\Platform\PlatformHandlerInterface:
+        class: App\Service\Platform\StandardPlatformHandler
+        arguments:
+            $cronServiceName: '%cron_service_name%'
+            
+    App\Form\CronJobType:
+        arguments:
+            $defaultCrontabUser: '%default_crontab_user%'
+            
+    App\Controller\CronJobController:
+        arguments:
+            $defaultCrontabUser: '%default_crontab_user%'
+            
+    App\Controller\DashboardController:
+        arguments:
+            $defaultCrontabUser: '%default_crontab_user%'

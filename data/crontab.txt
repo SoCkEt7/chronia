@@ -1,0 +1,3 @@
+# Sample crontab entries for development
+0 0 * * * /usr/bin/backup.sh
+*/5 * * * * /usr/bin/monitor.sh

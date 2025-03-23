@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Controller;
+
+use App\Service\CrontabManager\CrontabManagerInterface;
+use App\Service\Platform\PlatformHandlerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class DashboardController extends AbstractController
+{
+    private CrontabManagerInterface $crontabManager;
+    private PlatformHandlerInterface $platformHandler;
+    private string $defaultCrontabUser;
+    
+    public function __construct(
+        CrontabManagerInterface $crontabManager,
+        PlatformHandlerInterface $platformHandler,
+        string $defaultCrontabUser
+    ) {
+        $this->crontabManager = $crontabManager;
+        $this->platformHandler = $platformHandler;
+        $this->defaultCrontabUser = $defaultCrontabUser;
+    }
+    
+    #[Route('/', name: 'app_dashboard')]
+    public function index(Request $request): Response
+    {
+        // Get user from query parameter
+        $user = $request->query->get('user');
+        
+        $entries = $this->crontabManager->getEntries($user);
+        
+        // Count active jobs
+        $activeCount = count(array_filter($entries, function($entry) {
+            return $entry['active'];
+        }));
+        
+        // Get upcoming scheduled jobs
+        $upcomingJobs = [];
+        foreach ($entries as $entry) {
+            if ($entry['active']) {
+                $nextRun = $this->crontabManager->getNextRunTimes($entry['schedule'], 1);
+                if (!empty($nextRun)) {
+                    $upcomingJobs[] = [
+                        'id' => $entry['id'],
+                        'command' => $entry['command'],
+                        'next_run' => $nextRun[0]
+                    ];
+                }
+            }
+        }
+        
+        // Sort by next run time
+        usort($upcomingJobs, function($a, $b) {
+            return strtotime($a['next_run']) - strtotime($b['next_run']);
+        });
+        
+        // System status
+        $systemStatus = [
+            'cron_service' => $this->platformHandler->getCronServiceName(),
+            'cron_running' => $this->platformHandler->isCronServiceRunning(),
+            'platform' => $this->platformHandler->getPlatformInfo(),
+            'environment' => $this->getParameter('kernel.environment'),
+            'user' => function_exists('posix_getpwuid') ? posix_getpwuid(posix_geteuid())['name'] : get_current_user(),
+        ];
+        
+        return $this->render('dashboard/index.html.twig', [
+            'active_count' => $activeCount,
+            'total_count' => count($entries),
+            'upcoming_jobs' => array_slice($upcomingJobs, 0, 5), // Show only the next 5
+            'system_status' => $systemStatus,
+            'default_crontab_user' => $this->defaultCrontabUser,
+        ]);
+    }
+}

@@ -1,0 +1,50 @@
+{# templates/job/new.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}New Cron Job - Chronia{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>New Cron Job</h1>
+        <a href="{{ path('app_job_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {{ form_start(form) }}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form_row(form.schedule) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_row(form.schedule_type) }}
+                    </div>
+                </div>
+                {{ form_row(form.command) }}
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary">Create Job</button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const schedulePresets = document.querySelector('.schedule-presets');
+        const scheduleField = document.querySelector('[name$="[schedule]"]');
+        
+        if (schedulePresets && scheduleField) {
+            schedulePresets.addEventListener('change', function() {
+                if (this.value !== 'custom') {
+                    scheduleField.value = this.value;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

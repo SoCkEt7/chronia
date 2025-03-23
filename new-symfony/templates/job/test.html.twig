@@ -1,0 +1,42 @@
+{# templates/job/test.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Test Cron Job - Chronia{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Test Result</h1>
+        <div>
+            <a href="{{ path('app_job_index') }}" class="btn btn-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <a href="{{ path('app_job_edit', {'id': id}) }}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit Job
+            </a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>Job Execution Result</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <p>
+                    <strong>Exit Code:</strong>
+                    {% if result.exit_code == 0 %}
+                        <span class="badge bg-success">Success (0)</span>
+                    {% else %}
+                        <span class="badge bg-danger">Failed ({{ result.exit_code }})</span>
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="mb-3">
+                <h6>Output:</h6>
+                <pre class="bg-dark text-light p-3 rounded"><code>{{ result.output }}</code></pre>
+            </div>
+        </div>
+    </div>
+{% endblock %}

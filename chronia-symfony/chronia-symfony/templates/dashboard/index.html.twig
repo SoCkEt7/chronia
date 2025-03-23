@@ -1,0 +1,101 @@
+{# templates/dashboard/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - Chronia{% endblock %}
+
+{% block body %}
+    <h1>Dashboard</h1>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Active Jobs</div>
+                <div class="card-body">
+                    <h2 class="card-title">{{ active_count }}</h2>
+                    <p class="card-text">Currently active cron jobs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-secondary mb-3">
+                <div class="card-header">Total Jobs</div>
+                <div class="card-body">
+                    <h2 class="card-title">{{ total_count }}</h2>
+                    <p class="card-text">Total configured cron jobs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card {% if system_status.cron_running %}text-white bg-success{% else %}text-white bg-danger{% endif %} mb-3">
+                <div class="card-header">Cron Service</div>
+                <div class="card-body">
+                    <h2 class="card-title">{{ system_status.cron_running ? 'Running' : 'Stopped' }}</h2>
+                    <p class="card-text">{{ system_status.cron_service }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Upcoming Jobs</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_jobs is empty %}
+                        <p class="text-muted">No upcoming jobs</p>
+                    {% else %}
+                        <div class="list-group">
+                            {% for job in upcoming_jobs %}
+                                <a href="{{ path('app_job_edit', {'id': job.id}) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ job.command }}</h6>
+                                        <small>{{ job.next_run|date('Y-m-d H:i:s') }}</small>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>System Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Environment
+                            <span class="badge {% if system_status.environment == 'dev' %}bg-warning{% else %}bg-info{% endif %}">
+                                {{ system_status.environment }}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Platform
+                            <span class="badge bg-info">{{ system_status.platform.platform }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Cron Service
+                            <span class="badge {% if system_status.cron_running %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ system_status.cron_running ? 'Running' : 'Stopped' }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col">
+            <div class="d-grid gap-2">
+                <a href="{{ path('app_job_index') }}" class="btn btn-primary">Manage Cron Jobs</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
